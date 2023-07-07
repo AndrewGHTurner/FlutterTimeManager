@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import "menu.dart";
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -39,16 +41,21 @@ class _MyHomePageState extends State<MyHomePage> {
     build(context);
   }
 
+  GlobalKey<ScaffoldState> _globalKey = new GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     print("J");
     return Scaffold(
+        key: _globalKey,
         appBar: AppBar(
           //this is the bar at the top of the application
-          leading: const IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: null,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              _globalKey.currentState?.openDrawer();
+            },
           ),
+
           title: const Text("Time manager"),
         ),
         body: Center(
@@ -63,6 +70,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               child: const Text("my first button"))
-        ])));
+        ])),
+        drawer: Drawer(
+            backgroundColor: Colors.lightGreen,
+            child: ListView(
+              // Important: Remove any padding from the ListView.
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  child: Text("menu"),
+                ),
+                ListTile(
+                  title: Text("Home"),
+                  onTap: () => _globalKey.currentState?.closeDrawer(),
+                )
+              ],
+            )));
   }
 }
