@@ -73,18 +73,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ])),
         drawer: Drawer(
             backgroundColor: Colors.lightGreen,
-            child: ListView(
-              // Important: Remove any padding from the ListView.
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  child: Text("menu"),
-                ),
-                ListTile(
-                  title: Text("Home"),
-                  onTap: () => _globalKey.currentState?.closeDrawer(),
-                )
-              ],
+            child: Menu(
+              globalKey: _globalKey,
             )));
   }
 }
