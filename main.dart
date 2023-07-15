@@ -1,11 +1,20 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
-import "menu.dart";
+//import 'package:flutter_local_notifications/flutter_local_notifications.dart'; //for notifications
 
-void main() => runApp(MyApp());
+import "menuDrawer.dart";
+import "databaseController.dart";
+import "sharedAppBar.dart";
+
+Future<void> main() async {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,6 +37,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int clickCount = 0;
+  DatabaseController databaseController = DatabaseController();
   @override
   void initState() {
     // TODO: implement initState
@@ -38,25 +48,17 @@ class _MyHomePageState extends State<MyHomePage> {
   void printStuff() {
     print("K)");
     clickCount += 1;
-    build(context);
+    // build(context);
   }
 
   GlobalKey<ScaffoldState> _globalKey = new GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
-    print("J");
     return Scaffold(
         key: _globalKey,
-        appBar: AppBar(
-          //this is the bar at the top of the application
-          leading: IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              _globalKey.currentState?.openDrawer();
-            },
-          ),
-
-          title: const Text("Time manager"),
+        appBar: SharedAppBar(
+          title: "Home Page",
+          scaffoldKey: _globalKey,
         ),
         body: Center(
             child: Column(children: [
@@ -71,10 +73,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text("my first button"))
         ])),
-        drawer: Drawer(
-            backgroundColor: Colors.lightGreen,
-            child: Menu(
-              globalKey: _globalKey,
-            )));
+        drawer: MenuDrawer(
+          database: databaseController,
+        ));
   }
 }
