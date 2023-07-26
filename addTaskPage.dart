@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:time_manager/dataClasses.dart';
 
 import 'menuDrawer.dart';
 import "databaseController.dart";
@@ -11,17 +12,26 @@ import "sharedAppBar.dart";
 class AddTaskPage extends StatefulWidget {
   final GlobalKey<ScaffoldState> globalKey = GlobalKey<ScaffoldState>();
   DatabaseController database;
-  AddTaskPage({Key? key, required this.database}) : super(key: key);
+  TaskDetails parentTask;
+  AddTaskPage({Key? key, required this.database, required this.parentTask}) : super(key: key);
   @override
-  AddTaskPageState createState() => AddTaskPageState(database: database);
+  AddTaskPageState createState() => AddTaskPageState();
 }
 
 class AddTaskPageState extends State<AddTaskPage> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  DatabaseController database;
+  late DatabaseController database;
+  late TaskDetails parentTask;
   bool? completeOn = false;
-  AddTaskPageState({required this.database});
+  AddTaskPageState();
+  @override
+  void initState() {
+    super.initState();
+    database = widget.database;
+    parentTask = widget.parentTask;
+  }
+
   void handleRadioValueChange(bool? value) {
     setState(() {
       completeOn = value;
@@ -37,11 +47,18 @@ class AddTaskPageState extends State<AddTaskPage> {
     double screenwidth = MediaQuery.of(context).size.width;
     double headingFontSize = screenwidth / 20;
     String? taskName;
+    String title = "What is the name of the task?";
+    DateTime LatestCompletionDate = DateTime(3000);
+    if (parentTask.ID != -1) {
+      LatestCompletionDate = parentTask.completionDate;
+      String parentTaskName = parentTask.name;
+      title = "What is the name of the subtask $parentTaskName";
+    }
 
     return Scaffold(
         key: scaffoldKey,
         appBar: SharedAppBar(
-          title: "Add Tasks",
+          title: title,
           scaffoldKey: scaffoldKey,
         ),
         body: Form(
@@ -50,7 +67,7 @@ class AddTaskPageState extends State<AddTaskPage> {
             TextFormField(
               decoration: InputDecoration(
                 labelStyle: TextStyle(fontSize: headingFontSize),
-                labelText: "What is the name of the task?",
+                labelText: title,
               ),
               onSaved: (value) {
                 print("J");
@@ -83,6 +100,8 @@ class AddTaskPageState extends State<AddTaskPage> {
             FormBuilderDateTimePicker(
               name: 'date_established',
               format: DateFormat('dd/MM/yyyy hh:mm'),
+              initialDate: DateTime.now(),
+              lastDate: LatestCompletionDate,
               enabled: true,
               decoration: InputDecoration(hintText: "Enter completion date", labelStyle: TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.normal)),
               style: TextStyle(color: Colors.black, fontSize: 16.0, fontWeight: FontWeight.normal),
@@ -95,7 +114,7 @@ class AddTaskPageState extends State<AddTaskPage> {
               child: Text(style: TextStyle(fontSize: screenwidth / 20), "Add Task!"),
               onPressed: () {
                 formKey.currentState?.save();
-                database.addTask(taskName!, completionDate, completeOn!, true);
+                database.addTask(taskName: taskName!, completionDate: completionDate.toString(), isCompleteOn: completeOn.toString(), parentTaskID: parentTask.ID);
               },
             ),
           ]),

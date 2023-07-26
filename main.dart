@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 
 //import 'package:flutter_local_notifications/flutter_local_notifications.dart'; //for notifications
-
+import "sharedAppBar.dart";
 import "menuDrawer.dart";
 import "databaseController.dart";
-import "sharedAppBar.dart";
 
 Future<void> main() async {
   runApp(MyApp());
@@ -60,19 +59,21 @@ class _MyHomePageState extends State<MyHomePage> {
           title: "Home Page",
           scaffoldKey: _globalKey,
         ),
-        body: Center(
-            child: Column(children: [
-          Text("Hello World"),
-          Text("You clicked: " + clickCount.toString()),
-          ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  clickCount += 1;
-                  print("HH");
-                });
-              },
-              child: const Text("my first button"))
-        ])),
+        body: DecoratedBox(
+            decoration: BoxDecoration(color: Color.fromARGB(255, 179, 255, 93)),
+            child: Center(
+                child: Column(children: [
+              Text("Hello World"),
+              Text("You clicked: " + clickCount.toString()),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      clickCount += 1;
+                      print("HH");
+                    });
+                  },
+                  child: const Text("my first button"))
+            ]))),
         drawer: MenuDrawer(
           database: databaseController,
         ));
