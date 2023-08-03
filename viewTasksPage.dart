@@ -11,8 +11,12 @@ import 'listTasksWidget.dart';
 class ViewTasksPage extends StatefulWidget {
   DatabaseController database;
   ViewTasksPage({Key? key, required this.database}) : super(key: key);
+  late ViewTasksPageState j;
   @override
-  ViewTasksPageState createState() => ViewTasksPageState(database: database);
+  ViewTasksPageState createState() {
+    j = ViewTasksPageState(database: database);
+    return j;
+  }
 } /* body: Column(
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////WORKING HERE NEXT
             children: topLevelTasks!.map((Map<String, Object?> row) {
@@ -28,6 +32,10 @@ class ViewTasksPageState extends State<ViewTasksPage> {
   DatabaseController database;
   ViewTasksPageState({required this.database}) {}
   List<Map<String, Object?>>? topLevelTasks = [];
+  void rebuild() {
+    print("rebuilding");
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +63,7 @@ class ViewTasksPageState extends State<ViewTasksPage> {
         ),
         drawer: MenuDrawer(
           database: database,
+          g: this,
         )));
   }
 }

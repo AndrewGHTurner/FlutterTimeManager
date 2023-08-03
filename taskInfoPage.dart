@@ -78,7 +78,11 @@ class TaskInfoPageState extends State<TaskInfoPage> {
                                     builder: (context) => AddTaskPage(
                                           parentTask: task,
                                           database: database,
-                                        )));
+                                        ))).then(
+                              (value) {
+                                setState(() {});
+                              },
+                            );
                           },
                           child: const Text("New subtask")),
                       Spacer(),

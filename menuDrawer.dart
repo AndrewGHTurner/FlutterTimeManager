@@ -5,10 +5,18 @@ import 'package:time_manager/databaseController.dart';
 import 'package:time_manager/main.dart';
 import 'package:time_manager/viewTasksPage.dart';
 
+import 'viewTasksPage.dart';
+
 class MenuDrawer extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   DatabaseController database;
-  MenuDrawer({super.key, BuildContext? context, required this.database});
+  ViewTasksPageState? g; //this reference is needded if the menu drawer is used to go from viewtasks page to add task page as it will need redrawing if new task is added
+  MenuDrawer({
+    super.key,
+    BuildContext? context,
+    required this.database,
+    this.g,
+  });
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -39,7 +47,15 @@ class MenuDrawer extends StatelessWidget {
                           builder: (context) => AddTaskPage(
                                 parentTask: TaskDetails(completionDate: DateTime.now(), isCompleteOn: false, name: "", ID: -1, subTasks: []),
                                 database: database,
-                              )));
+                              ))).then(
+                    (value) {
+                      if (this.g != null) {
+                        print("OO");
+                        this.g!.rebuild();
+                      }
+                    },
+                  );
+                  ;
                 }),
             ListTile(
               title: Text("View Tasks"),

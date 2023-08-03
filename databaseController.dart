@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -8,16 +11,49 @@ import 'dataClasses.dart';
 
 class DatabaseController {
   Database? database;
-  DatabaseController() {
-    makeDatabase();
+  DatabaseController();
+
+  Future<String> getDatabasePath() async {
+    String databaseName = "Tasks.db";
+    Directory directory = await getApplicationDocumentsDirectory();
+
+    return join(directory.path, databaseName);
   }
+
+  Future<bool> checkDatabaseExists() async {
+    if (database == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+//this method doesnt work
+  Future<String> checkTableExists(String tableName) async {
+    String checkExistTable = "SELECT * FROM $tableName";
+    List<Map<String, Object?>>? checkExist = await database?.rawQuery(checkExistTable);
+    print("DFGHJK");
+    if (checkExist != null) {
+      if (checkExist.isEmpty == false) {
+        return "Table $tableName Exists";
+      } else {
+        return "Table $tableName does not exist";
+      }
+    }
+    return "resultt empty";
+  }
+
   void makeDatabase() async {
     print("mak");
+    sqfliteFfiInit();
     WidgetsFlutterBinding.ensureInitialized();
     //join method from path package is best practice so path is formed correctly on multiple platforms
     databaseFactory = databaseFactoryFfi;
+    String databaseName = "Tasks.db";
+    Directory directory = await getApplicationDocumentsDirectory();
+    String path = join(directory.path, databaseName);
 
-    database = await openDatabase(join(await getDatabasesPath(), "Tasks.db"), version: 1, onCreate: (Database db, int version) async {
+    database = await openDatabase(path, version: 1, onCreate: (Database db, int version) async {
       //Creates the table that holds all of the tasks entered by the user
       //creates the table that lists the top level tasks ie the tasks that do not have a parent task
       //creates the table that links parent task with their subtasks
@@ -26,41 +62,58 @@ class DatabaseController {
               taskID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
               name VARCHAR NOT NULL,
               completionDate DATE,
-              isCompleteOn BOOL);
-            
-            CREATE TABLE topLevelTasks(
-              taskID INTEGER,
-              FOREIGN KEY (taskID) REFERENCES tasks(taskID));
+              isCompleteOn BOOL);""");
 
-            CREATE TABLE subTasks(
+      await db.execute("""CREATE TABLE topLevelTasks(
+              taskID INTEGER,
+              FOREIGN KEY (taskID) REFERENCES tasks(taskID));""");
+
+      await db.execute("""CREATE TABLE subTasks(
               parentTaskID INTEGER NOT NULL,
               childTaskID INTEGER NOT NULL,
               FOREIGN KEY (parentTaskID) REFERENCES tasks(taskID),
-              FOREIGN KEY (childTaskID) REFERENCES tasks(taskID));
+              FOREIGN KEY (childTaskID) REFERENCES tasks(taskID));""");
+
+      await db.execute("""CREATE TABLE recurranceIntervals(taskID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+              taskID INTEGER,
+              years INTEGER NOT NULL,
+              months INTEGER NOT NULL,
+              weeks INTEGER NOT NULL,
+              days INTEGER NOT NULL)
+              FOREIGN KEY (taskID) REFERENCES tasks(taskID));
             """);
     });
   }
 
-  void addTask({required String taskName, required String? completionDate, required String isCompleteOn, int parentTaskID = -1}) async {
-    print("INSERT INTO tasks(name) VALUES ($taskName);");
-    print("""INSERT INTO tasks(name, completionDate, isCompleteOn) VALUES (
+  Future<bool> addTask(
+      {required String taskName, required String? completionDate, required String isCompleteOn, int parentTaskID = -1, required bool isReccuring, String years = "0", String months = "0", String weeks = "0", String days = "0"}) async {
+    //insert the new task in the tasks table ... this must be done first to prevent foreign key trouble
+    int? tasksRowID = await database?.rawInsert("""INSERT INTO tasks(name, completionDate, isCompleteOn) VALUES (
       '$taskName', '$completionDate', $isCompleteOn);""");
-    //list the new task in the tasks table ... this must be done first to prevent foreign key trouble
-    database?.execute("""INSERT INTO tasks(name, completionDate, isCompleteOn) VALUES (
-      '$taskName', '$completionDate', $isCompleteOn);""");
+    if (tasksRowID == 0) {
+      return false; //could not insert ... use a transaction?
+    }
+    String lastID = await tasksRowID.toString();
     if (parentTaskID < 1) {
       //TaskID of -1 indecates that this is a top level task.
       //get the rowID of the task that's just been inputted and add it to the list of top level tasks
-      List<Map<String, Object?>>? result = await database?.rawQuery("SELECT last_insert_rowid();");
-      String? lastRowID = Sqflite.firstIntValue(result!).toString();
-      database?.execute("INSERT INTO topLevelTasks(taskID) VALUES ((SELECT taskID FROM tasks WHERE rowid = $lastRowID));");
+      if (await database?.rawInsert("INSERT INTO topLevelTasks(taskID) VALUES ((SELECT taskID FROM tasks WHERE rowid = $lastID));") == 0) {
+        return false; //could not insert
+      }
     } else {
       //this task must be a subtask
       //get the rowID of the task that's just been inputted and add it to the subTasks table with the given parentTaskID
-      List<Map<String, Object?>>? result = await database?.rawQuery("SELECT last_insert_rowid();");
-      String? lastRowID = Sqflite.firstIntValue(result!).toString();
-      database?.execute("INSERT INTO subTasks(parentTaskID, childTaskID) VALUES ('$parentTaskID', '$lastRowID');");
+      if (await database?.rawInsert("INSERT INTO subTasks(parentTaskID, childTaskID) VALUES ('$parentTaskID', '$lastID');") == 0) {
+        return false; //could not insert
+      }
     }
+    //if the task is recurring insert the reccurance interval into the recurrance intervals table
+    if (isReccuring) {
+      if (await database?.rawInsert("INSERT INTO recurranceIntervals(taskID, years, months, weeks, days) VALUES ('$lastID', '$years', '$months', '$weeks', '$days');") == 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void _deleteSubTask(String subTaskID) async {
