@@ -8,7 +8,6 @@ import 'package:time_manager/viewTasksPage.dart';
 import 'viewTasksPage.dart';
 
 class MenuDrawer extends StatelessWidget {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   DatabaseController database;
   ViewTasksPageState? g; //this reference is needded if the menu drawer is used to go from viewtasks page to add task page as it will need redrawing if new task is added
   MenuDrawer({
@@ -32,20 +31,20 @@ class MenuDrawer extends StatelessWidget {
             ListTile(
                 title: Text("Home"),
                 onTap: () {
-                  scaffoldKey.currentState?.closeDrawer();
+                  Scaffold.of(context).closeDrawer();
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const MyHomePage()));
                 }),
             ListTile(
                 title: Text("Add Task"),
                 onTap: () {
-                  scaffoldKey.currentState?.closeDrawer();
+                  Scaffold.of(context).closeDrawer();
                   Navigator.pop(context);
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => AddTaskPage(
-                                parentTask: TaskDetails(completionDate: DateTime.now(), isCompleteOn: false, name: "", ID: -1, subTasks: []),
+                                parentTask: TaskDetails(completionDate: DateTime.now(), isCompleteOn: false, isRecurring: false, name: "", ID: -1, subTasks: []),
                                 database: database,
                               ))).then(
                     (value) {
@@ -60,7 +59,7 @@ class MenuDrawer extends StatelessWidget {
             ListTile(
               title: Text("View Tasks"),
               onTap: () {
-                scaffoldKey.currentState?.closeDrawer();
+                Scaffold.of(context).closeDrawer();
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (context) => ViewTasksPage(database: database)));
               },

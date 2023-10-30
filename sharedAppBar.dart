@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 class SharedAppBar extends StatelessWidget implements PreferredSizeWidget {
   String title;
-  final GlobalKey<ScaffoldState> scaffoldKey;
-  SharedAppBar({super.key, BuildContext? context, required this.title, required this.scaffoldKey});
+  SharedAppBar({super.key, BuildContext? context, required this.title});
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
   @override
@@ -13,7 +12,7 @@ class SharedAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: Icon(Icons.menu),
         onPressed: () {
-          scaffoldKey.currentState?.openDrawer();
+          Scaffold.of(context).openDrawer();
         },
       ),
       actions: [

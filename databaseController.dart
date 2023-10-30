@@ -62,7 +62,10 @@ class DatabaseController {
               taskID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
               name VARCHAR NOT NULL,
               completionDate DATE,
-              isCompleteOn BOOL);""");
+              neededMinutes INTEGER,
+              neededHours INTEGER,
+              isCompleteOn BOOL,
+              isRecurring BOOL);""");
 
       await db.execute("""CREATE TABLE topLevelTasks(
               taskID INTEGER,
@@ -74,22 +77,32 @@ class DatabaseController {
               FOREIGN KEY (parentTaskID) REFERENCES tasks(taskID),
               FOREIGN KEY (childTaskID) REFERENCES tasks(taskID));""");
 
-      await db.execute("""CREATE TABLE recurranceIntervals(taskID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      await db.execute("""CREATE TABLE recurranceIntervals(
               taskID INTEGER,
               years INTEGER NOT NULL,
               months INTEGER NOT NULL,
               weeks INTEGER NOT NULL,
-              days INTEGER NOT NULL)
+              days INTEGER NOT NULL,
               FOREIGN KEY (taskID) REFERENCES tasks(taskID));
             """);
     });
   }
 
   Future<bool> addTask(
-      {required String taskName, required String? completionDate, required String isCompleteOn, int parentTaskID = -1, required bool isReccuring, String years = "0", String months = "0", String weeks = "0", String days = "0"}) async {
+      {required String taskName,
+      required String? completionDate,
+      required bool isCompleteOn,
+      required bool isReccuring,
+      int parentTaskID = -1,
+      String neededHours = "0",
+      String neededMinutes = "0",
+      String years = "0",
+      String months = "0",
+      String weeks = "0",
+      String days = "0"}) async {
     //insert the new task in the tasks table ... this must be done first to prevent foreign key trouble
-    int? tasksRowID = await database?.rawInsert("""INSERT INTO tasks(name, completionDate, isCompleteOn) VALUES (
-      '$taskName', '$completionDate', $isCompleteOn);""");
+    int? tasksRowID = await database?.rawInsert("""INSERT INTO tasks(name, completionDate, neededMinutes, neededHours, isCompleteOn, isRecurring) VALUES (
+      '$taskName', '$completionDate', '$neededMinutes', '$neededHours', '$isCompleteOn', '$isReccuring');""");
     if (tasksRowID == 0) {
       return false; //could not insert ... use a transaction?
     }
@@ -176,7 +189,14 @@ class DatabaseController {
     if (date == "null") {
       date = DateTime(0).toString();
     }
-    print(date);
-    return TaskDetails(completionDate: DateTime.parse(date), isCompleteOn: task["isCompleteOn"] == 0 ? false : true, name: task["name"] as String, ID: task["taskID"] as int, subTasks: await listSubTasks(taskID));
+    return TaskDetails(
+        completionDate: DateTime.parse(date),
+        isCompleteOn: task["isCompleteOn"] == "false" ? false : true,
+        isRecurring: task["isRecurring"] == "false" ? false : true,
+        name: task["name"] as String,
+        ID: task["taskID"] as int,
+        hoursNeeded: task["neededHours"] as int,
+        minutesNeeded: task["neededMinutes"] as int,
+        subTasks: await listSubTasks(taskID));
   }
 }

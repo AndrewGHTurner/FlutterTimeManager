@@ -46,62 +46,19 @@ class _MyHomePageState extends State<MyHomePage> {
     print("state initialized");
   }
 
-  void printStuff() {
-    print("K)");
-    clickCount += 1;
-    // build(context);
-  }
-
-  GlobalKey<ScaffoldState> _globalKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
+    double screenwidth = MediaQuery.of(context).size.width;
+    double headingFontSize = screenwidth / 20;
     return Scaffold(
         key: _globalKey,
         appBar: SharedAppBar(
           title: "Home Page",
-          scaffoldKey: _globalKey,
         ),
         body: DecoratedBox(
-            decoration: BoxDecoration(color: Color.fromARGB(255, 179, 255, 93)),
-            child: Center(
-                child: Column(children: [
-              FutureBuilder(
-                  future: databaseController.getDatabasePath(),
-                  builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    if (snapshot.hasData) {
-                      return (Text(snapshot.data.toString()));
-                    } else {
-                      return const Text("No Data");
-                    }
-                  }),
-              FutureBuilder(
-                  future: databaseController.checkDatabaseExists(),
-                  builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                    if (snapshot.hasData) {
-                      return (Text("database exists"));
-                    } else {
-                      return const Text("database does not exist");
-                    }
-                  }),
-              FutureBuilder(
-                  future: databaseController.checkTableExists("tasks"),
-                  builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    if (snapshot.hasData) {
-                      return (Text(snapshot.data.toString()));
-                    } else {
-                      return const Text("no data");
-                    }
-                  }),
-              Text("You clicked: " + clickCount.toString()),
-              ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      clickCount += 1;
-                      print("HH");
-                    });
-                  },
-                  child: const Text("my first button"))
-            ]))),
+            decoration: const BoxDecoration(color: Color.fromARGB(255, 179, 255, 93)),
+            child: Center(child: Column(children: [Align(alignment: Alignment.centerLeft, child: Text("Next tasks Due:", style: TextStyle(fontSize: headingFontSize), textAlign: TextAlign.end))]))),
         drawer: MenuDrawer(
           database: databaseController,
         ));

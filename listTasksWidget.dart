@@ -5,17 +5,17 @@ import 'taskInfoPage.dart';
 
 class ListTasksWidget extends StatelessWidget {
   DatabaseController database;
-  List<Task> tasks;
+  List<Task>? tasks;
   final GlobalKey<ScaffoldState> scaffoldKey;
   ListTasksWidget({super.key, BuildContext? context, required this.database, required this.tasks, required this.scaffoldKey});
   @override
   Widget build(BuildContext context) {
     return (ListView.builder(
-        itemCount: tasks.length,
+        itemCount: tasks?.length,
         itemBuilder: (BuildContext context, int index) {
           Task task = tasks![index];
           return (Dismissible(
-            key: ValueKey<int>(tasks[index].ID),
+            key: ValueKey<int>(tasks![index].ID!),
             onDismissed: (dismissDirection) => {print(task.name)},
             background: Container(
               color: Colors.red,
@@ -23,14 +23,14 @@ class ListTasksWidget extends StatelessWidget {
             ),
             child: ListTile(
                 title: ElevatedButton(
-              child: Text(task.name),
+              child: Text(task.name!),
               onPressed: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => TaskInfoPage(
                               database: database,
-                              taskID: task.ID,
+                              taskID: task.ID!,
                             )));
               },
             )),
@@ -38,7 +38,7 @@ class ListTasksWidget extends StatelessWidget {
               return await showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  String name = task.name;
+                  String name = task.name!;
                   String taskID = task.ID.toString();
                   return AlertDialog(
                     title: const Text("Confirm"),

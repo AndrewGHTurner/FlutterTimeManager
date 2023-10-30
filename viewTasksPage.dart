@@ -59,7 +59,6 @@ class ViewTasksPageState extends State<ViewTasksPage> {
         //thinking a list of buttons. when a button is pressed it will take you to that tasks info page and it is from that page that you will be able to view any subtasks.. maybe once youve scrolled to the bottom
         appBar: SharedAppBar(
           title: "Your Tasks",
-          scaffoldKey: scaffoldKey,
         ),
         drawer: MenuDrawer(
           database: database,

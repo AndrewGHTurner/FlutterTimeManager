@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import "databaseController.dart";
 import "sharedAppBar.dart";
 import "menuDrawer.dart";
@@ -37,7 +38,9 @@ class TaskInfoPageState extends State<TaskInfoPage> {
 
     return Scaffold(
       key: scaffoldKey,
-      appBar: SharedAppBar(title: "Task Info", scaffoldKey: scaffoldKey),
+      appBar: SharedAppBar(
+        title: "Task Info",
+      ),
       body: FutureBuilder(
           future: database.getTaskDetails(widget.taskID.toString()),
           builder: (BuildContext context, AsyncSnapshot<TaskDetails> snapshot) {
@@ -49,9 +52,15 @@ class TaskInfoPageState extends State<TaskInfoPage> {
             } else if (snapshot.hasData) {
               TaskDetails? task = snapshot.data;
               String onOrBy = task?.isCompleteOn == true ? "on" : "by";
-              DateTime? completionDate = task?.completionDate;
+              DateTime? completionDateTime = task!.completionDate;
+              String completionDate = "${completionDateTime?.day.toString().padLeft(2, '0')}/${completionDateTime?.month.toString().padLeft(2, '0')}/${completionDateTime?.year}";
+              String completionTime = "${completionDateTime?.hour.toString().padLeft(2, '0')}:${completionDateTime?.minute.toString().padLeft(2, '0')}";
               StatelessWidget subTaskSection;
-              if (task!.subTasks.isEmpty) {
+              int? hoursNeeded = task?.hoursNeeded;
+              int? minutesNeeded = task?.minutesNeeded;
+              bool? isRecurring = task?.isRecurring;
+              print("Recurring: $isRecurring");
+              if (task.subTasks!.isEmpty) {
                 subTaskSection = const Text("No tasks to display");
               } else {
                 subTaskSection = ListTasksWidget(database: database, tasks: task.subTasks, scaffoldKey: scaffoldKey);
@@ -61,10 +70,18 @@ class TaskInfoPageState extends State<TaskInfoPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(task!.name, style: TextStyle(fontSize: headingFontSize, decoration: TextDecoration.underline), textAlign: TextAlign.left),
+                      Text(task.name!, style: TextStyle(fontSize: headingFontSize, decoration: TextDecoration.underline), textAlign: TextAlign.left),
                       Spacer(),
-                      Text("To be completed $onOrBy :\n      $completionDate", style: TextStyle(fontSize: textFontSize), textAlign: TextAlign.left),
+                      Text("To be completed $onOrBy :\n      $completionDate at $completionTime", style: TextStyle(fontSize: textFontSize), textAlign: TextAlign.left),
                       Spacer(),
+                      Text("Expected this task will take $hoursNeeded hours, and $minutesNeeded minutes.", style: TextStyle(fontSize: textFontSize), textAlign: TextAlign.left),
+                      Spacer(),
+                      Builder(builder: (context) {
+                        if (isRecurring == true) {
+                          return Text("this is a recurring task");
+                        }
+                        return SizedBox.shrink();
+                      }),
                       Text("Subtasks:", style: TextStyle(fontSize: textFontSize), textAlign: TextAlign.left),
                       DecoratedBox(decoration: BoxDecoration(color: Colors.amberAccent, borderRadius: BorderRadius.all(Radius.circular(15))), child: Container(height: screenHeight / 3, width: screenwidth * 0.95, child: subTaskSection)),
                       Spacer(),
